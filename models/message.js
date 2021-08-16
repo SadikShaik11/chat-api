@@ -5,7 +5,6 @@ const messageSchema = new Schema({
     appointment: { 
         type: String,
         required: true 
-        //ref to appointment
     },
     username: { 
         type: String, 
@@ -19,7 +18,7 @@ const messageSchema = new Schema({
         type: String, 
         default: null 
     }
-}, { versionKey: false, timestamps: true })
+}, { versionKey: false, timestamps: true, collection: 'messages' })
 
 const Message = mongoose.model("Message", messageSchema)
 

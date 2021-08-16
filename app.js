@@ -6,7 +6,7 @@ const Pusher = require('pusher')
 dotenv.config()
 const app = express()
 const chatApi = require('./routes/chatApi')
-const bodyParser = require('body-parser')
+const channelAuth = require('./routes/channelAuth')
 
 const pusher = new Pusher({
     appId: process.env.APP_ID,
@@ -15,9 +15,6 @@ const pusher = new Pusher({
     cluster: process.env.APP_CLUSTER,
     useTLS: process.env.USE_TLS
 });
-
-//different channels for different users
-const channel = 'messages'
 
 // enable cors
 app.use(cors())
@@ -29,10 +26,9 @@ app.use(express.urlencoded({
   extended: true
 }))
 
-//app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded({ extended: true }));
-
+//routes
 app.use('/chatApi', chatApi)
+app.use('/channelAuth', channelAuth)
 
 //connection to database
 mongoose.connect(process.env.MONGODB_URI, {
@@ -55,19 +51,35 @@ db.once('open', () => {
     const changeStream = messageCollection.watch();
       
     changeStream.on('change', (change) => {
-        console.log(change);
+        console.log("Change Stream: " + change.operationType);
         
         if(change.operationType === 'insert') {
             const message = change.fullDocument;
-            pusher.trigger(channel, 'inserted', {
+            //pusher trigger requires internet connection else throws error
+            //It means data will be saved on mongoDB but wouldn't pushed to the pusher
+            //Solution: Whenever this happens frontend can directly fetch data from mongoDB
+            //          and update it using unique "MSG _id"
+            pusher.trigger(process.env.CHANNEL, 'inserted', {
                 id: message._id,
                 text: message.text,
                 username: message.username,
                 attachment: message.attachment
             })
+            .catch(err=>{
+                console.log('PUSHER TRIGGER Error: ' + err);
+                return res.status(500).send('PUSHER TRIGGER Error');
+            })
         } else if(change.operationType === 'delete') {
             const message = change.fullDocument;
-            pusher.trigger(channel, 'deleted', change.documentKey._id )
+            //pusher trigger requires internet connection else throws error
+            //It means data will be saved on mongoDB but wouldn't pushed to the pusher
+            //Solution: Whenever this happens frontend can directly fetch data from mongoDB
+            //          and update it using unique "MSG _id"
+            pusher.trigger(process.env.CHANNEL, 'deleted', change.documentKey._id )
+            .catch(err=>{
+                console.log('PUSHER TRIGGER Error: ' + err);
+                return res.status(500).send('PUSHER TRIGGER Error');
+            })
         }
     })
 })
