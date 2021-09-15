@@ -33,10 +33,6 @@ db.on('error', console.error.bind(console, "Error Connecting to MongoDB: "));
 
 db.once('open', () => {
     console.log("Connected to MongoDB: monogoRS")
-
-    app.listen(process.env.PORT, () => {
-        console.log("Node server is running on port: ", process.env.PORT)
-    })
     
     //const messageCollection = db.collection('messages');
     //const changeStream = messageCollection.watch();
@@ -68,3 +64,7 @@ db.once('open', () => {
         }
     })*/
 })
+
+app.listen(process.env.PORT, () => {
+        console.log("Node server is running on port: ", process.env.PORT)
+    })
