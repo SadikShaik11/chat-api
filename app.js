@@ -19,6 +19,7 @@ app.use(express.urlencoded({
 
 //routes
 app.use('/chatApi', chatApi)
+app.get('/', (req, res) => {return res.status(200).json("hello world")})
 
 //connection to database
 mongoose.connect(process.env.MONGODB_URI, {
