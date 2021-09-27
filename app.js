@@ -9,7 +9,6 @@ const chatApi = require('./routes/chatApi')
 
 // enable cors
 app.use(cors())
-app.options('*', cors())
 
 //express body parser
 app.use(express.json())
